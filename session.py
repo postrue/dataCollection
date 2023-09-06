@@ -54,9 +54,10 @@ def main():
     
         print(f'------------------------------------\n')
         
-        time.sleep(60*t_increment)
-        os.system('afplay /System/Library/Sounds/Glass.aiff')
-        time.sleep(7)
+        if (i != session_length):
+            time.sleep(60*t_increment)
+            os.system('afplay /System/Library/Sounds/Glass.aiff')
+            time.sleep(7)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,27 @@
+x axis:
+0  minutes: R_squared - 0.9972, MSE - 0.3562
+10 minutes: R_squared - 0.9988, MSE - 0.0980
+20 minutes: R_squared - 1.0000, MSE - 0.0008
+30 minutes: R_squared - 1.0000, MSE - 0.0079
+40 minutes: R_squared - 0.9988, MSE - 0.1804
+50 minutes: R_squared - 1.0000, MSE - 0.0006
+60 minutes: R_squared - 1.0000, MSE - 0.0000
+
+y axis:
+0  minutes: R_squared - 0.0052, MSE - 0.4661
+10 minutes: R_squared - 0.3293, MSE - 0.8691
+20 minutes: R_squared - 0.4179, MSE - 1.6424
+30 minutes: R_squared - 0.9759, MSE - 0.7067
+40 minutes: R_squared - 0.5527, MSE - 2.2619
+50 minutes: R_squared - 0.9678, MSE - 0.1496
+60 minutes: R_squared - 0.9991, MSE - 0.0065
+
+z axis:
+0  minutes: R_squared - 0.9985, MSE - 0.0195
+10 minutes: R_squared - 0.8984, MSE - 0.8068
+20 minutes: R_squared - 0.9622, MSE - 0.0495
+30 minutes: R_squared - 0.5279, MSE - 3.4732
+40 minutes: R_squared - 0.6574, MSE - 1.0136
+50 minutes: R_squared - 0.5214, MSE - 1.0675
+60 minutes: R_squared - 0.9605, MSE - 0.1769
+

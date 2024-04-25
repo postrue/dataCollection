@@ -37,13 +37,13 @@ def main(filepath):
             getData = str(ser.readline())
             data = getData[2:][:-5]
 
-            if (data == "VIB END"):
+            if (data == "VIB OFF"):
                 continueReading = False
 
-            if ((line_count%500) == 0):
-                file.write(data+", " + str(datetime.datetime.now())+"\n") 
-            else:           
-                file.write(data+"\n")
+            # if ((line_count%500) == 0):
+            #     file.write(data+", " + str(datetime.datetime.now())+"\n") 
+            # else:           
+            file.write(data+"\n")
 
             line_count = line_count+1
 

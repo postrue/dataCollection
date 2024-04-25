@@ -1,0 +1,14 @@
+Participant: Shreya 
+Date: Sep-05-2023 
+
+Session Length: 60 minutes 
+Time Increment: 10 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'405.29037267674136 samples/second\n' 
+10 Minutes: b'402.4444979091726 samples/second\n' 
+20 Minutes: b'406.3113164666445 samples/second\n' 
+30 Minutes: b'406.72352453308497 samples/second\n' 
+40 Minutes: b'405.1406163478704 samples/second\n' 
+50 Minutes: b'402.2701337524489 samples/second\n' 
+60 Minutes: b'405.4008425349763 samples/second\n' 

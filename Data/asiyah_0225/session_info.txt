@@ -1,0 +1,19 @@
+Participant: asiyah 
+Date: Feb-25-2024 
+
+Session Length: 60 minutes 
+Time Increment: 10 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'509.1355882387974 samples/second\n' 
+10 Minutes: b'508.42312228162444 samples/second\n' 
+20 Minutes: b'502.4776216510745 samples/second\n' 
+30 Minutes: b'508.5297391040522 samples/second\n' 
+40 Minutes: b'508.12014512593544 samples/second\n' 
+50 Minutes: b'503.03132051554877 samples/second\n' 
+60 Minutes: b'506.8880550052754 samples/second\n' 
+
+notes:
+- Was sitting at Khadijah's desk, light blue chair
+- I think at the 10 min vibration, the motor was not properly stuck to minutes
+- Was late at night, around 11pm - 12am

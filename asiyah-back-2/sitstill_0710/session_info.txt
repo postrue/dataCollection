@@ -1,0 +1,19 @@
+Participant: sitstill 
+Date: Jul-10-2024 
+
+Session Length: 9 minutes 
+Time Increment: 1 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'503.91529955077334 samples/second\n' 
+1 Minutes: b'507.99649635566453 samples/second\n' 
+2 Minutes: b'507.8397632192379 samples/second\n' 
+3 Minutes: b'504.59704792467903 samples/second\n' 
+4 Minutes: b'504.63528408821156 samples/second\n' 
+5 Minutes: b'507.8153498461559 samples/second\n' 
+6 Minutes: b'507.8339172866846 samples/second\n' 
+7 Minutes: b'507.68736636753545 samples/second\n' 
+8 Minutes: b'506.55112360040135 samples/second\n' 
+9 Minutes: b'502.81643536230365 samples/second\n' 
+
+time: 1pm

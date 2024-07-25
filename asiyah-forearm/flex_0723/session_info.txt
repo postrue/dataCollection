@@ -1,0 +1,17 @@
+Participant: flex 
+Date: Jul-23-2024 22:44:34 
+
+Session Length: 9 minutes 
+Time Increment: 1 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'509.34498815885064 samples/second\n' 
+1 Minutes: b'506.08416373840004 samples/second\n' 
+2 Minutes: b'503.0935017821007 samples/second\n' 
+3 Minutes: b'506.0191145247175 samples/second\n' 
+4 Minutes: b'502.67128179368314 samples/second\n' 
+5 Minutes: b'506.51282998611254 samples/second\n' 
+6 Minutes: b'506.5685297050026 samples/second\n' 
+7 Minutes: b'502.50945150343324 samples/second\n' 
+8 Minutes: b'502.376873569581 samples/second\n' 
+9 Minutes: b'503.72141616356845 samples/second\n' 

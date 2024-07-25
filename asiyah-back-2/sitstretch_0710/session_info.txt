@@ -1,0 +1,17 @@
+Participant: sitstretch 
+Date: Jul-10-2024 13:27:11 
+
+Session Length: 9 minutes 
+Time Increment: 1 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'506.0463657003987 samples/second\n' 
+1 Minutes: b'505.5990584621049 samples/second\n' 
+2 Minutes: b'506.0102131572993 samples/second\n' 
+3 Minutes: b'506.0392491500075 samples/second\n' 
+4 Minutes: b'506.0362522102595 samples/second\n' 
+5 Minutes: b'505.94310003332646 samples/second\n' 
+6 Minutes: b'506.4353373534566 samples/second\n' 
+7 Minutes: b'505.71483270428087 samples/second\n' 
+8 Minutes: b'506.3219152063541 samples/second\n' 
+9 Minutes: b'506.8025154222032 samples/second\n' 

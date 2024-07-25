@@ -1,0 +1,9 @@
+Participant: asiyah2 
+Date: Jul-02-2024 
+
+Session Length: 1 minutes 
+Time Increment: 1 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'502.4771326773403 samples/second\n' 
+1 Minutes: b'508.08259156622825 samples/second\n' 

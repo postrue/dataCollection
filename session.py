@@ -1,5 +1,5 @@
 import os
-from datetime import date as cal
+from datetime import datetime, date as cal
 import time
 import subprocess
 
@@ -21,12 +21,17 @@ def session_init():
     t_increment = int(input('How often are you collecting data (every ___ mins): '))
 
     date = cal.today().strftime("%m%d")
-    folderpath = f"Data/{participant}_{date}/"
+    folderpath = f"forearm/{participant}_{date}/"
 
     os.mkdir(folderpath)
 
+    now = datetime.now()
+
+    # Format the date and time
+    formatted_date_time = now.strftime("%b-%d-%Y %H:%M:%S")
+
     f = open(f"{folderpath}session_info.txt", 'w')
-    f.write(f'Participant: {participant} \nDate: {cal.today().strftime("%b-%d-%Y")} \n\n')
+    f.write(f'Participant: {participant} \nDate: {formatted_date_time} \n\n')
     f.write(f'Session Length: {session_length} minutes \nTime Increment: {t_increment} minutes \nVibrations per Reading: 30 \n\n')
     f.flush()
 

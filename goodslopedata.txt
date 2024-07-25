@@ -1,0 +1,5 @@
+rubber1_0710, z axis
+	error:[0.85150896], slope:[0.06633269]
+x: 0.0, y: 0.0, z:1.0
+good sessions:
+rubber1_0710

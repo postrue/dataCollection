@@ -1,0 +1,17 @@
+Participant: rubber1 
+Date: Jul-10-2024 13:48:18 
+
+Session Length: 9 minutes 
+Time Increment: 1 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'508.58056449519177 samples/second\n' 
+1 Minutes: b'505.8123552255681 samples/second\n' 
+2 Minutes: b'505.9267543317704 samples/second\n' 
+3 Minutes: b'505.7624633664115 samples/second\n' 
+4 Minutes: b'506.3504206188001 samples/second\n' 
+5 Minutes: b'506.8233604287341 samples/second\n' 
+6 Minutes: b'504.4147342743138 samples/second\n' 
+7 Minutes: b'506.03393304803376 samples/second\n' 
+8 Minutes: b'506.09982035664456 samples/second\n' 
+9 Minutes: b'501.80844866875805 samples/second\n' 

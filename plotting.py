@@ -1,12 +1,30 @@
 import csv
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy.signal import butter, filtfilt
 
-user = 'asiyah'
-date = '0226'
+
+user = 'sitstretch'
+date = '0710'
+fs = 540
+
+# Low-pass and high-pass filter cutoff frequencies
+low_cutoff = 200  # Low-pass filter cutoff frequency (Hz)
+high_cutoff = 100  # High-pass filter cutoff frequency (Hz)
+
+# Butterworth filter design
+def butter_filter(signal, cutoff_freq, fs, order=5, filter_type='low'):
+    nyquist = 0.5 * fs  # Nyquist frequency
+    normal_cutoff = cutoff_freq / nyquist  # Normalized cutoff frequency
+    b, a = butter(order, normal_cutoff, btype=filter_type, analog=False)
+    filtered_signal = filtfilt(b, a, signal)  # Apply the filter
+    return filtered_signal
+
+
 
 # Step 1: Read the CSV file
-for t in range(0, 61, 10):
-    file_path = f"./Data/{user}_{date}/{user}_{t}.csv"
+for t in range(10):
+    file_path = f"./asiyah-back-2/{user}_{date}/{user}_{t}.csv"
 
     # Step 2: Parse the file and extract every third value starting from the first
     y_values = [[] for _ in range(9)]
@@ -29,18 +47,56 @@ for t in range(0, 61, 10):
                     y_values[_].append(row_values[_])
                 # extracted_values = row_values[0]  # Extract every third value starting from the first
                 # y_values.append(extracted_values)
-
+    seg_lengths = []
     # Step 3: Plot the extracted values
     coords = [[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]
     titles = ['X3','Y3','Z3','X2','Y2','Z2','X1','Y1','Z1']
-    fig, axs = plt.subplots(3, 3)
+    fig, axs = plt.subplots(3, 3, figsize=(10, 6))
     for i in range(len(coords)):
+        signal = y_values[i][fs:]
+
+        # Step 1: Apply a high-pass filter to remove low-frequency drift
+        high_passed_signal = butter_filter(signal, high_cutoff, fs, order=3, filter_type='high')
+
+        # Step 2: Apply a low-pass filter to remove high-frequency noise
+        filtered_signal = butter_filter(high_passed_signal, low_cutoff, fs, order=3, filter_type='low')
+
+        # Threshold-based segmentation (with your adjusted threshold calculation)
+        threshold = np.mean(filtered_signal) + np.std(filtered_signal) * 0.5  # Adjust based on your signal
+        above_threshold = np.where(filtered_signal > threshold)[0]
+
+        diffs = np.diff(above_threshold)
+        gap_threshold = np.percentile(diffs, 99)  # You can adjust the percentile as needed
+
+        segments = np.split(above_threshold, np.where(diffs > gap_threshold)[0] + 1) 
+
+    
+        seg_lengths.append(len(segments)) 
+
         ax = axs[coords[i][0], coords[i][1]]
-        ax.plot(y_values[i])
+        ax.plot(filtered_signal, alpha=0.5)
         ax.set_xlabel('Index')
         ax.set_ylabel('Signal')
         ax.set_title(f"{titles[i]} - {t} min")
+        ax.axhline(threshold, color='red', linestyle='--', label='Threshold')
+
+        
+        actual = 0
+        # Loop through each segment and plot only the middle 50%
+        for segment in segments:
+            if len(segment) > 50:  # Skip short segments that may be noise
+                actual += 1
+                start, end = segment[0], segment[-1]
+                segment_length = end - start + 1
+                
+                # Keep only the middle 50% of the segment
+                middle_start = start + int(0.25 * segment_length)
+                middle_end = start + int(0.75 * segment_length)
+                
+                ax.plot(range(middle_start, middle_end+1), filtered_signal[middle_start:middle_end+1], label=f'Vibration {middle_start}-{middle_end}')
+        print(f"{titles[i]}: {actual} segments")
     #axs[0,0].grid(True)
+    print(seg_lengths)
     plt.tight_layout()
     plt.show()
 

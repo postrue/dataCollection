@@ -2,7 +2,7 @@ import fun
 
 def main():
     fname = input("name of session folder (include directory): ")
-    sl, il = fun.seshinfo(fname)
+    sl, il, vr = fun.seshinfo(fname)
     n = (sl // il) + 1
     l = ['x','y','z']
     array_3d = fun.amps(fname)

@@ -4,6 +4,17 @@ import numpy as np
 from scipy.signal import butter, filtfilt
 
 
+"""
+Data processing steps:
+    - first filter out all frequencies above 200 Hz or below 100 Hz. Main peak occurs around 160 Hz
+    - then set a threshold to be the average of the signal plus half a standard deviation
+    - find all indices where the signal is above the threshold
+    - find the "gap threshold" this is where the distance between indices found above is in the 99th percentile of all distances between indices
+    - split into segments wherever the distance between indices is greater than the gap threshold
+    - skip segments with a length of less than 50 indices
+    
+"""
+
 user = 'sitstretch'
 date = '0710'
 fs = 540
@@ -94,9 +105,9 @@ for t in range(10):
                 middle_end = start + int(0.75 * segment_length)
                 
                 ax.plot(range(middle_start, middle_end+1), filtered_signal[middle_start:middle_end+1], label=f'Vibration {middle_start}-{middle_end}')
-        print(f"{titles[i]}: {actual} segments")
+        # print(f"{titles[i]}: {actual} segments")
     #axs[0,0].grid(True)
-    print(seg_lengths)
+    # print(seg_lengths)
     plt.tight_layout()
     plt.show()
 

@@ -3,13 +3,22 @@ import csv
 import matplotlib.pyplot as plt
 import math
 from scipy.optimize import curve_fit
+from scipy.signal import butter, filtfilt
 from sklearn.linear_model import LinearRegression
 from pathlib import Path
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import os
 
+# Butterworth filter design
+def butter_filter(signal, cutoff_freq, fs, order=5, filter_type='low'):
+    nyquist = 0.5 * fs  # Nyquist frequency
+    normal_cutoff = cutoff_freq / nyquist  # Normalized cutoff frequency
+    b, a = butter(order, normal_cutoff, btype=filter_type, analog=False)
+    filtered_signal = filtfilt(b, a, signal)  # Apply the filter
+    return filtered_signal
+
 #input: string that is the name of the folder containing the session. ex: "Data/asiyah_0225".
-#output: tuple of two integers, first is session length and second is interval length (minutes)
+#output: tuple of three integers, first is session length, second is interval length (minutes), third is vibrations per reading
 def seshinfo(folder):
     file_path = Path(f"./{folder}/session_info.txt")
     if file_path.exists():
@@ -19,10 +28,13 @@ def seshinfo(folder):
             sl = int(line[2])
             line = file.readline().strip().split(' ')
             il = int(line[2])
+            line = file.readline().strip().split(' ')
+            vr = int(line[3])
     else:
         sl = 60
         il = 10
-    return (sl, il)
+        vr = 30
+    return (sl, il, vr)
 
 
 # input: string that is the name of the folder containing the session. ex: "Data/asiyah_0225".
@@ -33,7 +45,7 @@ def seshinfo(folder):
 #  10 min:[[][][]]...
 #  60 min]
 def amps(fname):
-    sl, il = seshinfo(fname)
+    sl, il, vr = seshinfo(fname)
     n = (sl // il) + 1
     array_3d = np.zeros((n, 3, 3))
     paths = fname.split('/')
@@ -298,6 +310,99 @@ def plotdecays(params):
         plt.plot(x_fit, y_fit, color='red')
         plt.title(f"{ax[i]}")
     plt.show() 
+
+# inputs: 
+#   seshname: session director name. example: "asiyah-back-2/sitstretch_0710/sitstretch_0.csv"
+#   fs: sampling frequency
+#   low_cutoff: We don't want anything higher frequency than this
+#   high_cutoff: We don't want anything lower frequency than this
+# output: 9xNxS array
+# row is a sensor/direction. order is: ['X3','Y3','Z3','X2','Y2','Z2','X1','Y1','Z1']
+# columns N is the number of vibrations per reading. 
+#   NOTE: if the signal is very inconsistent this may not match the actual vibrations per reading. take into account in future steps
+# slice S is number of samples in the vibration. may vary slightly. 
+def signal_processing(sesh_name, fs, low_cutoff, high_cutoff):
+    processed_signal = [[],[],[],[],[],[],[],[],[]]
+    y_values = [[],[],[],[],[],[],[],[],[]]
+    file_path = f"./{sesh_name}"
+    with open(file_path, 'r') as file:
+        reader = csv.reader(file, delimiter=' ')
+        for row in reader:
+            row_values = []
+            for value in row:
+                try:
+                    float_value = float(value)
+                    row_values.append(float_value)
+                except ValueError:
+                    pass  # Skip non-numeric values
+                
+        
+            if len(row_values) == 10:
+                for _ in range(9):
+                    y_values[_].append(row_values[_])
+    for i in range(9):
+        signal = y_values[i][fs:]
+
+        # Step 1: Apply a high-pass filter to remove low-frequency drift
+        high_passed_signal = butter_filter(signal, high_cutoff, fs, order=3, filter_type='high')
+
+        # Step 2: Apply a low-pass filter to remove high-frequency noise
+        filtered_signal = butter_filter(high_passed_signal, low_cutoff, fs, order=3, filter_type='low')
+
+        # Threshold-based segmentation (with your adjusted threshold calculation)
+        threshold = np.mean(filtered_signal) + np.std(filtered_signal) * 0.5  # Adjust based on your signal
+        above_threshold = np.where(filtered_signal > threshold)[0]
+
+        diffs = np.diff(above_threshold)
+        gap_threshold = np.percentile(diffs, 99)  # You can adjust the percentile as needed
+
+        segments = np.split(above_threshold, np.where(diffs > gap_threshold)[0] + 1) 
+
+        # Loop through each segment and save only the middle 50%
+        for segment in segments:
+            if len(segment) > 50:  # Skip short segments that may be noise
+                start, end = segment[0], segment[-1]
+                segment_length = end - start + 1
+                
+                # Keep only the middle 50% of the segment
+                middle_start = start + int(0.25 * segment_length)
+                middle_end = start + int(0.75 * segment_length)
+                
+                processed_signal[i].append(filtered_signal[middle_start:middle_end+1])
+    return processed_signal
+
+
+
+# input: takes in return value from signal_processing() function
+# output: Nx3 matrix. N is the number of vibrations per reading. columns are an axis [X, Y, Z]
+def individual_decays(processed_signal, N):
+
+    ret = np.zeros((N,3))
+    index_patterns = [
+    [6, 3, 0],
+    [7, 4, 1],
+    [8, 5, 2]
+    ]
+
+    for i, indices in enumerate(index_patterns):
+        ax = [processed_signal[j] for j in indices]
+        len_check = np.array([len(sensor) for sensor in ax])
+        if np.all(len_check == N): # if less than 30 segments detected, it was a bad signal
+            print("hey")
+            for s in range(N):
+                avgamps = [np.mean(np.abs(ax[j][s])) for j in range(3)]
+                x_data = list(range(3))
+
+                # Fit the exponential model to the data
+                popt, pcov = curve_fit(exponential_func, x_data, avgamps)
+
+                # Extract the parameters
+                a, b = popt
+
+                # The parameter 'b' represents the rate of growth or decay
+                ret[s, i] = b
+    return ret
+
 
 
 def closest_factors(n):

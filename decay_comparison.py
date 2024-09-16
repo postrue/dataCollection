@@ -20,7 +20,7 @@ def main():
         if os.path.isdir(file):
             seshname = file.split('/')[-1]
             numfiles += 1
-            sl, il = fun.seshinfo(f'{dir}/{seshname}')
+            sl, il, vr = fun.seshinfo(f'{dir}/{seshname}')
             n = (sl // il) + 1
             amplitudes = fun.amps(f'{dir}/{seshname}')
             params, err = fun.expfit(amplitudes)

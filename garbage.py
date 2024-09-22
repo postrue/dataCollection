@@ -137,3 +137,142 @@ def main():
     #     decayovertime(array_2d)
     # errs = errors(array_3d)
     # print(errs)
+
+
+# input: takes in return value from signal_processing() function
+# output: Nx3 matrix. N is the number of vibrations per reading. columns are an axis [X, Y, Z]
+def individual_decays(processed_signal, N):
+
+    ret = np.zeros((N,3))
+
+    index_patterns = [
+    [6, 3, 0],
+    [7, 4, 1],
+    [8, 5, 2]
+    ]
+
+
+    for i, indices in enumerate(index_patterns):
+        ax = [processed_signal[j] for j in indices]
+        len_check = np.array([len(sensor) for sensor in ax])
+        if np.all(len_check == N): # if less than 30 segments detected, it was a bad signal
+            for s in range(N):
+                avgamps = [np.mean(np.abs(ax[j][s])) for j in range(3)]
+                x_data = list(range(3))
+
+                # Fit the exponential model to the data
+                popt, pcov = curve_fit(exponential_func, x_data, avgamps)
+
+                # Extract the parameters
+                a, b = popt
+
+                # The parameter 'b' represents the rate of growth or decay
+                ret[s, i] = b
+        
+    return ret
+
+
+#version of individual_decays that tries to work with two values:
+# input: return values from signal_processing
+# output DECAYS: 3xS array with each array being a direction and S being the number of vibrations in the data collection session. Will input 0 if one particular vibration was not properly captured by more than one of the three sensors.
+# output AMPS: 9xS array 
+def individual_decays(processed_signal, svals, lengths, tolerance = 120):
+    decays = [[], [], []]  # To store decay values for each index pattern
+    amps = [[],[],[],[],[],[],[],[],[]] # To store amplitudes for each sensor/direction. Order is: ['X3','Y3','Z3','X2','Y2','Z2','X1','Y1','Z1']
+    index_patterns = [
+        [6, 3, 0], # corresponds to [X1 X2 X3]
+        [7, 4, 1], # corresponds to [Y1 Y2 Y3]
+        [8, 5, 2]  # corresponds to [Z1 Z2 Z3]
+    ]
+    num_vals = [[[],[]],[[],[]],[[],[]]]
+    # Loop through each set of indices
+    for i, indices in enumerate(index_patterns):
+        ax = [processed_signal[j] for j in indices]  # Extract 3D array of dimensions 3xnxs
+        
+        # Initialize index variables
+        s1, s2, s3 = 0, 0, 0
+        max_lengths = [len(ax[0]), len(ax[1]), len(ax[2])]  # Max lengths for each 2D array in ax
+        
+
+        # While loop until one of the index variables reaches the max length
+        while s1 < max_lengths[0] and s2 < max_lengths[1] and s3 < max_lengths[2]:
+            # Get vectors from the corresponding 2D array
+            v1, v2, v3 = ax[0][s1], ax[1][s2], ax[2][s3]
+            sval1, sval2, sval3 = svals[indices[0]][s1], svals[indices[1]][s2], svals[indices[2]][s3]
+
+            within_tolerance = [abs(sval1 - sval2) <= tolerance, abs(sval2 - sval3) <= tolerance, abs(sval1 - sval3) <= tolerance]
+            print(f"i: {i}, s1: {s1}, s2: {s2}, s3: {s3}, {within_tolerance}")
+            print(f"sval1: {sval1}, sval2: {sval2}, sval3: {sval3}")
+            # Conditional steps based on tolerance check
+            if abs(sval1 - sval2) <= tolerance and abs(sval2 - sval3) <= tolerance:
+                # All three vectors pass tolerance check
+                amps[indices[0]].append(max(v1))
+                amps[indices[1]].append(max(v2))
+                amps[indices[2]].append(max(v3))
+                y_values = [max(v1), max(v2), max(v3)]
+                x_values = list(range(3))
+                s1 += 1
+                s2 += 1
+                s3 += 1
+                
+            elif abs(sval1 - sval2) <= tolerance:
+                # v1 and v2 pass tolerance check
+                amps[indices[0]].append(max(v1))
+                amps[indices[1]].append(max(v2))
+                amps[indices[2]].append(0)
+                y_values = [max(v1), max(v2)]
+                x_values = list(range(2))
+                s1 += 1
+                s2 += 1
+            elif abs(sval1 - sval3) <= tolerance:
+                # v1 and v3 pass tolerance check
+                amps[indices[0]].append(max(v1))
+                amps[indices[1]].append(0)
+                amps[indices[2]].append(max(v3))
+                y_values = [max(v1), max(v3)]
+                x_values = list(range(2))
+                s1 += 1
+                s3 += 1
+                
+            elif abs(sval2 - sval3) <= tolerance:
+                # v2 and v3 pass tolerance check
+                amps[indices[0]].append(0)
+                amps[indices[1]].append(max(v2))
+                amps[indices[2]].append(max(v3))
+                y_values = [max(v2), max(v3)]
+                x_values = list(range(2))
+                s2 += 1
+                s3 += 1
+                
+            else:
+                # None pass tolerance, increment the smallest index variable and append 0
+                min_index = np.argmin([v1[0], v2[0], v3[0]])
+                if min_index == 0:
+                    s1 += 1
+                elif min_index == 1:
+                    s2 += 1
+                else:
+                    s3 += 1
+                decays[i].append(0)
+                amps[indices[0]].append(0)
+                amps[indices[1]].append(0)
+                amps[indices[2]].append(0)
+                continue  # Skip to next iteration
+            
+            # Perform linear approximation in logarithmic space for decay calculation
+            
+            log_y_values = np.log(y_values)
+            slope, intercept = np.polyfit(x_values, log_y_values, 1)
+            decay = -slope  # Decay rate is the negative of the slope
+            decays[i].append(decay)
+            num_vals[i][len(y_values) - 2].append(decay)
+    
+    for i, v in enumerate(num_vals):
+        for j, w in enumerate(v):
+            if len(w) != 0:
+                if j == 0:
+                    print(f"axis {i} average two-value decay: {sum(w)/len(w)}")
+                if j == 1:
+                    print(f"axis {i} average three-value decay: {sum(w)/len(w)}")
+    return (decays, amps)
+

@@ -21,7 +21,7 @@ def session_init():
     t_increment = int(input('How often are you collecting data (every ___ mins): '))
 
     date = cal.today().strftime("%m%d")
-    folderpath = f"forearm/{participant}_{date}/"
+    folderpath = f"asiyah-forearm-1/{participant}_{date}/"
 
     os.mkdir(folderpath)
 

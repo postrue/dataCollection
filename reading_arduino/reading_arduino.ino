@@ -12,7 +12,7 @@ bool motor_on = false;
 
 int vib_counter = 0;
 const int VIB = 30;
-int MAX_VIB_COUNT = VIB*2;`
+int MAX_VIB_COUNT = VIB*2;
 
 const int BUFFER_SIZE = 4000;           // Size of the buffer
 volatile int buffer[BUFFER_SIZE];       // Buffer to store analog data
@@ -96,10 +96,11 @@ void loop() {
       Serial.println("VIB OFF");
     }
   
-  }  
+  }
+
+  
 
   noInterrupts();
-
   if (bufferIndex >= BUFFER_SIZE) {
     for (int i = 0; i < BUFFER_SIZE; i++) {
       Serial.print(buffer[i]);

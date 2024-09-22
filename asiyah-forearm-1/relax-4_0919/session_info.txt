@@ -1,0 +1,9 @@
+Participant: relax-4 
+Date: Sep-19-2024 00:51:07 
+
+Session Length: 1 minutes 
+Time Increment: 1 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'503.2667068791632 samples/second\n' 
+1 Minutes: b'504.17133443712686 samples/second\n' 

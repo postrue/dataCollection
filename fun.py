@@ -316,13 +316,18 @@ def plotdecays(params):
 #   fs: sampling frequency
 #   low_cutoff: We don't want anything higher frequency than this
 #   high_cutoff: We don't want anything lower frequency than this
-# output: 9xNxS array
-# row is a sensor/direction. order is: ['X3','Y3','Z3','X2','Y2','Z2','X1','Y1','Z1']
-# columns N is the number of vibrations per reading. 
-#   NOTE: if the signal is very inconsistent this may not match the actual vibrations per reading. take into account in future steps
-# slice S is number of samples in the vibration. may vary slightly. 
+# output: A tuple consisting of:
+# 9xNxS array processed_signal
+    # row is a sensor/direction. order is: ['X3','Y3','Z3','X2','Y2','Z2','X1','Y1','Z1']
+    # columns N is the number of vibrations per reading. 
+    #   NOTE: if the signal is very inconsistent this may not match the actual vibrations per reading. take into account in future steps
+    # slice S is number of samples in the vibration. may vary slightly. 
+# 9xN array starting_vals, consisting of the sample where each data point starts
+# 9xN array lengths, consisting of the lengths (in sample points) of each vibration
 def signal_processing(sesh_name, fs, low_cutoff, high_cutoff):
-    processed_signal = [[],[],[],[],[],[],[],[],[]]
+    processed_signal = [[],[],[],[],[],[],[],[],[]] #3D array
+    starting_vals = [[],[],[],[],[],[],[],[],[]] #2D array
+    lengths = [[],[],[],[],[],[],[],[],[]] #2D array
     y_values = [[],[],[],[],[],[],[],[],[]]
     file_path = f"./{sesh_name}"
     with open(file_path, 'r') as file:
@@ -367,41 +372,122 @@ def signal_processing(sesh_name, fs, low_cutoff, high_cutoff):
                 # Keep only the middle 50% of the segment
                 middle_start = start + int(0.25 * segment_length)
                 middle_end = start + int(0.75 * segment_length)
-                
+
+                starting_vals[i].append(middle_start)
+                lengths[i].append(middle_end - middle_start)
                 processed_signal[i].append(filtered_signal[middle_start:middle_end+1])
-    return processed_signal
+    return (processed_signal, starting_vals, lengths)
 
 
 
-# input: takes in return value from signal_processing() function
-# output: Nx3 matrix. N is the number of vibrations per reading. columns are an axis [X, Y, Z]
-def individual_decays(processed_signal, N):
 
-    ret = np.zeros((N,3))
+
+# input: return values from signal_processing
+# output DECAYS: 3xS array with each array being a direction and S being the number of vibrations in the data collection session. Will input 0 if one particular vibration was not properly captured by more than one of the three sensors.
+# output AMPS: 9xS array 
+# NOTE: in the process of trying to do sample width filtering but it's not working so it's commented out
+def individual_decays(processed_signal, svals, lengths, tolerance = 250):
+    decays = [[], [], []]  # To store decay values for each index pattern
+    amps = [[],[],[],[],[],[],[],[],[]] # To store amplitudes for each sensor/direction. Order is: ['X3','Y3','Z3','X2','Y2','Z2','X1','Y1','Z1']
     index_patterns = [
-    [6, 3, 0],
-    [7, 4, 1],
-    [8, 5, 2]
+        [6, 3, 0], # corresponds to [X1 X2 X3]
+        [7, 4, 1], # corresponds to [Y1 Y2 Y3]
+        [8, 5, 2]  # corresponds to [Z1 Z2 Z3]
     ]
-
+    num_vals = [[[],[]],[[],[]],[[],[]]]
+    # Loop through each set of indices
     for i, indices in enumerate(index_patterns):
-        ax = [processed_signal[j] for j in indices]
-        len_check = np.array([len(sensor) for sensor in ax])
-        if np.all(len_check == N): # if less than 30 segments detected, it was a bad signal
-            print("hey")
-            for s in range(N):
-                avgamps = [np.mean(np.abs(ax[j][s])) for j in range(3)]
-                x_data = list(range(3))
-
-                # Fit the exponential model to the data
-                popt, pcov = curve_fit(exponential_func, x_data, avgamps)
-
-                # Extract the parameters
-                a, b = popt
-
-                # The parameter 'b' represents the rate of growth or decay
-                ret[s, i] = b
-    return ret
+        ax = [processed_signal[j] for j in indices]  # Extract 3D array of dimensions 3xnxs
+        # widths = [lengths[j] for j in indices]
+        # Initialize index variables
+        s1, s2, s3 = 0, 0, 0
+        max_lengths = [len(ax[0]), len(ax[1]), len(ax[2])]  # Max lengths for each 2D array in ax
+        # avgs = []
+        # thresh = []
+        # for w in widths:
+        #     data = np.array(w)
+        #     avgs.append(np.mean(data))
+        #     std_dev = np.std(data)
+        #     threshold = 2 * std_dev
+        #     thresh.append(threshold)
+        # print(f"avgs: {avgs}")
+        # print(f"thresh: {thresh}")
+        # While loop until one of the index variables reaches the max length
+        while s1 < max_lengths[0] and s2 < max_lengths[1] and s3 < max_lengths[2]:
+            # Get vectors from the corresponding 2D array
+            v1, v2, v3 = ax[0][s1], ax[1][s2], ax[2][s3]
+            sval1, sval2, sval3 = svals[indices[0]][s1], svals[indices[1]][s2], svals[indices[2]][s3]
+            within_tolerance = [abs(sval1 - sval2) <= tolerance, abs(sval2 - sval3) <= tolerance, abs(sval1 - sval3) <= tolerance]
+            # ind_width = [widths[0][s1], widths[1][s2], widths[2][s3]]
+            # widths_within_tolerance = [abs(ind_width[j] - avgs[j]) <= thresh[j] for j in range(3)]
+            # if not all(widths_within_tolerance):
+            #    if not widths_within_tolerance[0]: s1 += 1
+            #    if not widths_within_tolerance[1]: s2 += 1
+            #    if not widths_within_tolerance[2]: s3 += 1
+            #    continue
+            
+            # Conditional steps based on tolerance check
+            if all(within_tolerance):
+                # All three vectors pass tolerance check
+                amps[indices[0]].append(max(v1))
+                amps[indices[1]].append(max(v2))
+                amps[indices[2]].append(max(v3))
+                y_values = [max(v1), max(v2), max(v3)]
+                x_values = list(range(3))
+                s1 += 1
+                s2 += 1
+                s3 += 1
+            else:
+                y_values = []
+                amps[indices[0]].append(0)
+                amps[indices[1]].append(0)
+                amps[indices[2]].append(0)
+                decays[i].append(0)
+                
+                # reason for the weird conditionals: these happen when 2 match up but 1 doesn't. in this case we need to increment either the 2 if they are smaller or the 1 if it is smaller. try finding a more streamlined approach but this works for now
+                if within_tolerance[0]:
+                    # v1 and v2 pass tolerance check
+                    if sval1 > sval3:
+                        s3 += 1
+                    else:
+                        s1 += 1
+                        s2 += 1
+                elif within_tolerance[2]:
+                    # v1 and v3 pass tolerance check
+                    if  sval1 > sval2:
+                        s2 += 1
+                    else:
+                        s1 += 1
+                        s3 += 1
+                elif within_tolerance[1]:
+                    # v2 and v3 pass tolerance check
+                    if sval2 > sval1:
+                        s1 += 1
+                    else:
+                        s2 += 1
+                        s3 += 1
+                else:
+                    # None pass tolerance, increment the smallest index variable 
+                    min_index = np.argmin([v1[0], v2[0], v3[0]])
+                    if min_index == 0:
+                        s1 += 1
+                    elif min_index == 1:
+                        s2 += 1
+                    else:
+                        s3 += 1
+                    
+                continue  # Skip to next iteration
+            
+            # Perform linear approximation in logarithmic space for decay calculation
+            
+            if len(y_values) > 0:
+                log_y_values = np.log(y_values)
+                slope, intercept = np.polyfit(x_values, log_y_values, 1)
+                decay = -slope  # Decay rate is the negative of the slope
+                decays[i].append(decay)
+    
+   
+    return (decays, amps)
 
 
 

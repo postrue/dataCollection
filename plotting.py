@@ -15,8 +15,8 @@ Data processing steps:
     
 """
 
-user = 'sitstretch'
-date = '0710'
+user = 'relax-3'
+date = '0919'
 fs = 540
 
 # Low-pass and high-pass filter cutoff frequencies
@@ -34,8 +34,8 @@ def butter_filter(signal, cutoff_freq, fs, order=5, filter_type='low'):
 
 
 # Step 1: Read the CSV file
-for t in range(10):
-    file_path = f"./asiyah-back-2/{user}_{date}/{user}_{t}.csv"
+for t in range(2):
+    file_path = f"./asiyah-forearm-1/{user}_{date}/{user}_{t}.csv"
 
     # Step 2: Parse the file and extract every third value starting from the first
     y_values = [[] for _ in range(9)]

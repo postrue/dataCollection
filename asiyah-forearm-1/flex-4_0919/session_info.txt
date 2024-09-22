@@ -1,0 +1,9 @@
+Participant: flex-4 
+Date: Sep-19-2024 00:57:25 
+
+Session Length: 1 minutes 
+Time Increment: 1 minutes 
+Vibrations per Reading: 30 
+
+0 Minutes: b'509.4014403529525 samples/second\n' 
+1 Minutes: b'509.5165667369987 samples/second\n' 

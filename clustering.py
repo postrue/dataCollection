@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.cluster import KMeans
-
-
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 import seaborn as sns
@@ -9,6 +9,18 @@ from scipy.stats import mannwhitneyu
 from sklearn.decomposition import PCA
 from scipy import stats
 
+
+def logisticRegression(X_data, labels):
+    X_train, X_test, y_train, y_test = train_test_split(X_data, labels, test_size=0.2, random_state=42)
+
+    model = LogisticRegression()
+
+    model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f'Accuracy: {accuracy * 100:.2f}%')
 
 # Function to remove features with p-value greater than 0.05
 def remove_high_pvalue_features(data, group_labels, alpha=0.05):
@@ -97,6 +109,8 @@ group0 = np.load('relax_data.npy')  # Replace with actual group0 data
 group1 = np.load('flex_data.npy')  # Replace with actual group1 data
 
 
+# c0 = remove_outliers(group0)
+# c1 = remove_outliers(group1)
 
 
 c0 = remove_outliers(group0[:30,:])
@@ -107,16 +121,21 @@ c3 = remove_outliers(group1[30:,:])
 
 
 # Stack the two arrays together
+# X = np.vstack((c0,c1))
 X = np.vstack((c0, c1, c2, c3))
 
 
 # Create a label array for the true groups
+# y_true = np.array([0] * c0.shape[0] + [1] * c1.shape[0]) 
 y_true = np.array([0] * c0.shape[0] + [1] * c1.shape[0] + [2] * c2.shape[0] + [3] * c3.shape[0]) 
 
 
 
+
+
 # Run the function to filter out features with p-value > 0.05
-filtered_data, kept_features = remove_high_pvalue_features(X, y_true)
+# filtered_data, kept_features = remove_high_pvalue_features(X, y_true)
+filtered_data = X
 
 # Apply normalization
 data_min = np.min(filtered_data, axis=0)  # Minimum value for each feature (column-wise)
@@ -168,6 +187,8 @@ plt.grid()
 
 plt.tight_layout()
 plt.show()
+
+logisticRegression(normalized_data, y_true)
 
 
 
